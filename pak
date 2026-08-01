@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pac-Man Místico: Recolector de Luz 🌿✨</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body {
+            background-color: #0d0e15;
+            color: #e0e6ed;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        h1 {
+            font-size: 1.4rem;
+            color: #f39c12;
+            text-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+        }
+        p.subtitle {
+            font-size: 0.85rem;
+            color: #a0aec0;
+        }
+        #game-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #score-board {
+            display: flex;
+            justify-content: space-between;
+            width: 320px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        canvas {
+            background: #141824;
+            border: 2px solid #3182ce;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(49, 130, 206, 0.3);
+        }
+        /* Controles Táctiles para Celular */
+        #controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            width: 180px;
+            margin-top: 15px;
+        }
+        .btn-ctrl {
+            background: #2d3748;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            touch-action: manipulation;
+        }
+        .btn-ctrl:active {
+            background: #4a5568;
+            transform: scale(0.95);
+        }
+        #up { grid-column: 2; }
+        #left { grid-column: 1; grid-row: 2; }
+        #down { grid-column: 2; grid-row: 2; }
+        #right { grid-column: 3; grid-row: 2; }
+
+        /* Pantalla de Mensaje Modal */
+        #modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(13, 14, 21, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        #modal h2 {
+            color: #63b3ed;
+            margin-bottom: 10px;
+        }
+        #modal p {
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        #modal button {
+            background: #d69e2e;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Limpieza Mística 🌟</h1>
+        <p class="subtitle">Recolecta la luz y disipa el ruido mental</p>
+    </header>
+
+    <div id="game-container">
+        <div id="score-board">
+            <span>Puntos: <span id="score">0</span></span>
+            <span>Estado: <span id="status" style="color: #63b3ed;">En Calma</span></span>
+        </div>
+
+        <canvas id="canvas" width="320" height="320"></canvas>
+
+        <div id="controls">
+            <button class="btn-ctrl" id="up">⬆️</button>
+            <button class="btn-ctrl" id="left">⬅️</button>
+            <button class="btn-ctrl" id="down">⬇️</button>
+            <button class="btn-ctrl" id="right">➡️</button>
+        </div>
+
+        <div id="modal">
+            <h2 id="modal-title">¿Lista para volver a tu centro?</h2>
+            <p id="modal-msg">Recoge todas las estrellas de luz. Si te cruzas con un pensamiento pesado, usa las Esferas de Anclaje 🔮 para disiparlo.</p>
+            <button id="start-btn">Comenzar</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const statusEl = document.getElementById('status');
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMsg = document.getElementById('modal-msg');
+        const startBtn = document.getElementById('start-btn');
+
+        const tileSize = 20;
+        const rows = 16;
+        const cols = 16;
+
+        // 1: Muro, 0: Estrella de Luz, 2: Esfera de Anclaje (Powerup), 3: Vacío
+        const map = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,2,0,0,0,0,1,1,0,0,0,0,0,0,2,1],
+            [1,0,1,1,0,0,1,1,0,0,1,1,0,1,0,1],
+            [1,0,1,1,0,0,0,0,0,0,1,1,0,1,0,1],
+            [1,0,0,0,0,1,1,1,1,0,0,0,0,0,0,1],
+            [1,0,1,1,0,1,3,3,1,0,1,1,0,1,0,1],
+            [1,0,0,0,0,1,3,3,1,0,0,0,0,0,0,1],
+            [1,1,1,0,0,1,1,1,1,0,0,1,1,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,0,1,1,1,1,0,1,1,0,1,0,1],
+            [1,0,0,1,0,0,0,0,0,0,1,0,0,1,0,1],
+            [1,1,0,1,0,1,0,0,1,0,1,0,1,1,0,1],
+            [1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,1],
+            [1,0,1,1,1,1,0,0,1,1,1,1,0,1,0,1],
+            [1,2,0,0,0,0,0,0,0,0,0,0,0,0,2,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        let currentMap = [];
+        let score = 0;
+        let gameInterval = null;
+        let powerMode = false;
+        let powerTimer = null;
+
+        let player = { x: 1, y: 1, dirX: 0, dirY: 0, nextDirX: 0, nextDirY: 0 };
+        let ghosts = [
+            { x: 7, y: 6, color: '#e53e3e', dirX: 1, dirY: 0 },
+            { x: 8, y: 6, color: '#805ad5', dirX: -1, dirY: 0 }
+        ];
+
+        function resetGame() {
+            currentMap = JSON.parse(JSON.stringify(map));
+            score = 0;
+            scoreEl.innerText = score;
+            powerMode = false;
+            statusEl.innerText = "En Calma";
+            statusEl.style.color = "#63b3ed";
+
+            player.x = 1;
+            player.y = 1;
+            player.dirX = 0;
+            player.dirY = 0;
+            player.nextDirX = 0;
+            player.nextDirY = 0;
+
+            ghosts[0].x = 7; ghosts[0].y = 6;
+            ghosts[1].x = 8; ghosts[1].y = 6;
+        }
+
+        function drawMap() {
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    let tile = currentMap[r][c];
+                    if (tile === 1) {
+                        ctx.fillStyle = '#2b6cb0';
+                        ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
+                        ctx.strokeStyle = '#1a365d';
+                        ctx.strokeRect(c * tileSize, r * tileSize, tileSize, tileSize);
+                    } else if (tile === 0) {
+                        ctx.fillStyle = '#f6e05e';
+                        ctx.beginPath();
+                        ctx.arc(c * tileSize + tileSize/2, r * tileSize + tileSize/2, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (tile === 2) {
+                        ctx.fillStyle = '#b794f4';
+                        ctx.beginPath();
+                        ctx.arc(c * tileSize + tileSize/2, r * tileSize + tileSize/2, 6, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+
+        function drawPlayer() {
+            ctx.fillStyle = powerMode ? '#68d391' : '#f6ad55';
+            ctx.beginPath();
+            ctx.arc(player.x * tileSize + tileSize/2, player.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawGhosts() {
+            ghosts.forEach(g => {
+                ctx.fillStyle = powerMode ? '#4299e1' : g.color;
+                ctx.beginPath();
+                ctx.arc(g.x * tileSize + tileSize/2, g.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function movePlayer() {
+            if (player.nextDirX !== 0 || player.nextDirY !== 0) {
+                if (currentMap[player.y + player.nextDirY][player.x + player.nextDirX] !== 1) {
+                    player.dirX = player.nextDirX;
+                    player.dirY = player.nextDirY;
+                }
+            }
+
+            if (currentMap[player.y + player.dirY][player.x + player.dirX] !== 1) {
+                player.x += player.dirX;
+                player.y += player.dirY;
+            }
+
+            // Comer estrellas y poder
+            let tile = currentMap[player.y][player.x];
+            if (tile === 0) {
+                currentMap[player.y][player.x] = 3;
+                score += 10;
+                scoreEl.innerText = score;
+            } else if (tile === 2) {
+                currentMap[player.y][player.x] = 3;
+                score += 50;
+                scoreEl.innerText = score;
+                activatePower();
+            }
+
+            checkWin();
+        }
+
+        function moveGhosts() {
+            ghosts.forEach(g => {
+                let validDirs = [];
+                const dirs = [{x:0, y:-1}, {x:0, y:1}, {x:-1, y:0}, {x:1, y:0}];
+                dirs.forEach(d => {
+                    if (currentMap[g.y + d.y][g.x + d.x] !== 1) {
+                        validDirs.push(d);
+                    }
+                });
+
+                if (validDirs.length > 0) {
+                    let randomDir = validDirs[Math.floor(Math.random() * validDirs.length)];
+                    g.x += randomDir.x;
+                    g.y += randomDir.y;
+                }
+
+                // Colisión con jugador
+                if (g.x === player.x && g.y === player.y) {
+                    if (powerMode) {
+                        g.x = 7; g.y = 6; // Regresa al centro
+                        score += 100;
+                        scoreEl.innerText = score;
+                    } else {
+                        gameOver(false);
+                    }
+                }
+            });
+        }
+
+        function activatePower() {
+            powerMode = true;
+            statusEl.innerText = "¡Anclada y Protegida!";
+            statusEl.style.color = "#68d391";
+            clearTimeout(powerTimer);
+            powerTimer = setTimeout(() => {
+                powerMode = false;
+                statusEl.innerText = "En Calma";
+                statusEl.style.color = "#63b3ed";
+            }, 7000);
+        }
+
+        function checkWin() {
+            let left = 0;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (currentMap[r][c] === 0 || currentMap[r][c] === 2) left++;
+                }
+            }
+            if (left === 0) gameOver(true);
+        }
+
+        function gameOver(win) {
+            clearInterval(gameInterval);
+            modal.style.display = 'flex';
+            if (win) {
+                modalTitle.innerText = "¡Mente Despejada y En Paz! ✨🌿";
+                modalMsg.innerText = "Has recolectado toda la luz y disipado las distracciones. Te regalaste un gran momento de presencia.";
+            } else {
+                modalTitle.innerText = "Un Pequeño Tropiezo 🧠💭";
+                modalMsg.innerText = "Un pensamiento intrusivo te distrajo. No pasa nada, respira profundo y vuelve a intentarlo.";
+            }
+            startBtn.innerText = "Volver a Jugar";
+        }
+
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            movePlayer();
+            moveGhosts();
+            drawMap();
+            drawPlayer();
+            drawGhosts();
+        }
+
+        // Eventos Teclado
+        window.addEventListener('keydown', e => {
+            if (e.key === 'ArrowUp') setDir(0, -1);
+            if (e.key === 'ArrowDown') setDir(0, 1);
+            if (e.key === 'ArrowLeft') setDir(-1, 0);
+            if (e.key === 'ArrowRight') setDir(1, 0);
+        });
+
+        // Eventos Botones Táctiles
+        document.getElementById('up').onclick = () => setDir(0, -1);
+        document.getElementById('down').onclick = () => setDir(0, 1);
+        document.getElementById('left').onclick = () => setDir(-1, 0);
+        document.getElementById('right').onclick = () => setDir(1, 0);
+
+        function setDir(x, y) {
+            player.nextDirX = x;
+            player.nextDirY = y;
+        }
+
+        startBtn.onclick = () => {
+            modal.style.display = 'none';
+            resetGame();
+            gameInterval = setInterval(update, 250);
+        };
+
+        // Render Inicial
+        drawMap();
+    </script>
+</body>
+</html>
