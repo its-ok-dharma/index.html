@@ -3,172 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Limpieza Mística: Recolector de Luz 🌿✨</title>
+    <title>Limpieza Mística 🌟</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
-            background: radial-gradient(circle at center, #1a1c2e 0%, #0d0e15 100%);
+            background: #0d0e15;
             color: #e0e6ed;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             padding: 10px;
-            overflow: hidden;
         }
-        header {
-            text-align: center;
-            margin-bottom: 8px;
-        }
-        h1 {
-            font-size: 1.5rem;
-            color: #f6ad55;
-            text-shadow: 0 0 12px rgba(246, 173, 85, 0.6);
-            letter-spacing: 0.5px;
-        }
-        p.subtitle {
-            font-size: 0.85rem;
-            color: #a0aec0;
-            margin-top: 2px;
-        }
-        #game-container {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            max-width: 100%;
-        }
+        h1 { color: #f6ad55; font-size: 1.4rem; margin-bottom: 4px; text-align: center; }
+        p.sub { color: #a0aec0; font-size: 0.85rem; margin-bottom: 12px; text-align: center; }
         #score-board {
             display: flex;
             justify-content: space-between;
             width: 320px;
             padding: 8px 14px;
-            background: rgba(255, 255, 255, 0.07);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
             margin-bottom: 10px;
+            font-weight: bold;
             font-size: 0.95rem;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        canvas {
-            background: #101420;
-            border: 2px solid #4299e1;
-            border-radius: 16px;
-            box-shadow: 0 0 25px rgba(66, 153, 225, 0.25);
-            touch-action: none;
-        }
-        /* Controles Táctiles para Móviles */
+        #game-box { position: relative; width: 320px; height: 320px; }
+        canvas { background: #101420; border: 2px solid #3b82f6; border-radius: 12px; }
         #controls {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
             width: 220px;
-            margin-top: 14px;
+            margin-top: 15px;
         }
         .btn-ctrl {
-            background: linear-gradient(145deg, #2d3748, #1a202c);
+            background: #2d3748;
             color: #fff;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: none;
             padding: 14px;
             font-size: 1.4rem;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
             touch-action: manipulation;
-            transition: transform 0.05s ease, background 0.2s ease;
         }
-        .btn-ctrl:active {
-            background: #4a5568;
-            transform: scale(0.92);
-        }
+        .btn-ctrl:active { background: #4a5568; }
         #up { grid-column: 2; }
         #left { grid-column: 1; grid-row: 2; }
         #down { grid-column: 2; grid-row: 2; }
         #right { grid-column: 3; grid-row: 2; }
-
-        /* Pantalla de Mensaje Modal */
-        #modal {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(13, 14, 21, 0.92);
-            backdrop-filter: blur(6px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 16px;
-            padding: 24px;
-            text-align: center;
-            z-index: 10;
-        }
-        #modal h2 {
-            color: #63b3ed;
-            font-size: 1.3rem;
-            margin-bottom: 12px;
-        }
-        #modal p {
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            color: #cbd5e0;
-        }
-        #modal button {
-            background: linear-gradient(135deg, #ecc94b 0%, #d69e2e 100%);
-            color: #1a202c;
-            border: none;
-            padding: 12px 28px;
-            font-size: 1rem;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(214, 158, 46, 0.4);
-            transition: transform 0.2s ease;
-        }
-        #modal button:active {
-            transform: scale(0.95);
-        }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Limpieza Mística 🌟</h1>
-        <p class="subtitle">Recolecta la luz y disipa el ruido mental</p>
-    </header>
+    <h1>Limpieza Mística 🌟</h1>
+    <p class="sub">Recolecta la luz y disipa el ruido mental</p>
 
-    <div id="game-container">
-        <div id="score-board">
-            <span>Puntos: <span id="score">0</span></span>
-            <span>Estado: <span id="status" style="color: #63b3ed;">En Calma</span></span>
-        </div>
+    <div id="score-board">
+        <span>Puntos: <span id="score">0</span></span>
+        <span>Estado: <span id="status" style="color: #63b3ed;">En Calma</span></span>
+    </div>
 
+    <div id="game-box">
         <canvas id="canvas" width="320" height="320"></canvas>
+    </div>
 
-        <div id="controls">
-            <button class="btn-ctrl" id="up">⬆️</button>
-            <button class="btn-ctrl" id="left">⬅️</button>
-            <button class="btn-ctrl" id="down">⬇️</button>
-            <button class="btn-ctrl" id="right">➡️</button>
-        </div>
-
-        <div id="modal">
-            <h2 id="modal-title">¿Lista para volver a tu centro?</h2>
-            <p id="modal-msg">Recoge todas las estrellas de luz. Si te cruzas con un pensamiento pesado, usa las Esferas de Anclaje 🔮 para disiparlo.</p>
-            <button id="start-btn">Comenzar</button>
-        </div>
+    <div id="controls">
+        <button class="btn-ctrl" id="up">⬆️</button>
+        <button class="btn-ctrl" id="left">⬅️</button>
+        <button class="btn-ctrl" id="down">⬇️</button>
+        <button class="btn-ctrl" id="right">➡️</button>
     </div>
 
     <script>
@@ -176,16 +82,7 @@
         const ctx = canvas.getContext('2d');
         const scoreEl = document.getElementById('score');
         const statusEl = document.getElementById('status');
-        const modal = document.getElementById('modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalMsg = document.getElementById('modal-msg');
-        const startBtn = document.getElementById('start-btn');
 
-        const tileSize = 20;
-        const rows = 16;
-        const cols = 16;
-
-        // 1: Muro, 0: Estrella de Luz, 2: Esfera de Anclaje, 3: Vacío
         const map = [
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
             [1,2,0,0,0,0,1,1,0,0,0,0,0,0,2,1],
@@ -205,18 +102,12 @@
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
         ];
 
-        let currentMap = [];
+        let currentMap = JSON.parse(JSON.stringify(map));
         let score = 0;
-        let gameInterval = null;
         let powerMode = false;
         let powerTimer = null;
-        let pulseFrame = 0;
-
-        let player = { x: 1, y: 1, dirX: 0, dirY: 0, nextDirX: 0, nextDirY: 0 };
-        let ghosts = [
-            { x: 7, y: 6, color: '#fc8181', dirX: 1, dirY: 0 },
-            { x: 8, y: 6, color: '#b794f4', dirX: -1, dirY: 0 }
-        ];
+        let player = { x: 1, y: 1, dirX: 0, dirY: 0, nextX: 0, nextY: 0 };
+        let ghosts = [{ x: 7, y: 6, color: '#fc8181' }, { x: 8, y: 6, color: '#b794f4' }];
 
         function resetGame() {
             currentMap = JSON.parse(JSON.stringify(map));
@@ -225,19 +116,115 @@
             powerMode = false;
             statusEl.innerText = "En Calma";
             statusEl.style.color = "#63b3ed";
-
-            player.x = 1;
-            player.y = 1;
-            player.dirX = 0;
-            player.dirY = 0;
-            player.nextDirX = 0;
-            player.nextDirY = 0;
-
-            ghosts[0].x = 7; ghosts[0].y = 6;
-            ghosts[1].x = 8; ghosts[1].y = 6;
+            player = { x: 1, y: 1, dirX: 0, dirY: 0, nextX: 0, nextY: 0 };
+            ghosts = [{ x: 7, y: 6, color: '#fc8181' }, { x: 8, y: 6, color: '#b794f4' }];
         }
 
-        function drawMap() {
-            pulseFrame += 0.1;
-            for (let r = 0; r < rows; r++) {
-                for (let c
+        function draw() {
+            ctx.clearRect(0, 0, 320, 320);
+            for (let r = 0; r < 16; r++) {
+                for (let c = 0; c < 16; c++) {
+                    let tile = currentMap[r][c];
+                    let x = c * 20, y = r * 20;
+                    if (tile === 1) {
+                        ctx.fillStyle = '#1e3a8a';
+                        ctx.fillRect(x + 1, y + 1, 18, 18);
+                    } else if (tile === 0) {
+                        ctx.fillStyle = '#f6e05e';
+                        ctx.beginPath(); ctx.arc(x + 10, y + 10, 2.5, 0, 7); ctx.fill();
+                    } else if (tile === 2) {
+                        ctx.fillStyle = '#9f7aea';
+                        ctx.beginPath(); ctx.arc(x + 10, y + 10, 5, 0, 7); ctx.fill();
+                    }
+                }
+            }
+
+            // Jugador
+            ctx.fillStyle = powerMode ? '#68d391' : '#f6ad55';
+            ctx.beginPath(); ctx.arc(player.x * 20 + 10, player.y * 20 + 10, 8, 0, 7); ctx.fill();
+
+            // Fantasmas
+            ghosts.forEach(g => {
+                ctx.fillStyle = powerMode ? '#4299e1' : g.color;
+                ctx.beginPath(); ctx.arc(g.x * 20 + 10, g.y * 20 + 10, 8, 0, 7); ctx.fill();
+                
+                // Ojos
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(g.x * 20 + 7, g.y * 20 + 8, 2, 0, 7);
+                ctx.arc(g.x * 20 + 13, g.y * 20 + 8, 2, 0, 7);
+                ctx.fill();
+            });
+        }
+
+        function update() {
+            if (player.nextX !== 0 || player.nextY !== 0) {
+                if (currentMap[player.y + player.nextY][player.x + player.nextX] !== 1) {
+                    player.dirX = player.nextX; player.dirY = player.nextY;
+                }
+            }
+            if (currentMap[player.y + player.dirY][player.x + player.dirX] !== 1) {
+                player.x += player.dirX; player.y += player.dirY;
+            }
+
+            let tile = currentMap[player.y][player.x];
+            if (tile === 0) { currentMap[player.y][player.x] = 3; score += 10; scoreEl.innerText = score; }
+            if (tile === 2) { 
+                currentMap[player.y][player.x] = 3; score += 50; scoreEl.innerText = score;
+                powerMode = true; statusEl.innerText = "¡Protegida!"; statusEl.style.color = "#68d391";
+                clearTimeout(powerTimer);
+                powerTimer = setTimeout(() => { powerMode = false; statusEl.innerText = "En Calma"; statusEl.style.color = "#63b3ed"; }, 7000);
+            }
+
+            // Mover Fantasmas
+            ghosts.forEach(g => {
+                let dirs = [{x:0,y:-1},{x:0,y:1},{x:-1,y:0},{x:1,y:0}].filter(d => currentMap[g.y + d.y][g.x + d.x] !== 1);
+                if (dirs.length) {
+                    let d = dirs[Math.floor(Math.random() * dirs.length)];
+                    g.x += d.x; g.y += d.y;
+                }
+                if (g.x === player.x && g.y === player.y) {
+                    if (powerMode) { 
+                        g.x = 7; g.y = 6; score += 100; scoreEl.innerText = score; 
+                    } else { 
+                        alert("¡Un pensamiento pesado te distrajo! Reiniciando...");
+                        resetGame();
+                    }
+                }
+            });
+
+            draw();
+            checkWin();
+        }
+
+        function checkWin() {
+            let dots = 0;
+            for (let r = 0; r < 16; r++) {
+                for (let c = 0; c < 16; c++) {
+                    if (currentMap[r][c] === 0 || currentMap[r][c] === 2) dots++;
+                }
+            }
+            if (dots === 0) {
+                alert("¡Mente Despejada y En Paz! ✨ Has recolectado toda la luz.");
+                resetGame();
+            }
+        }
+
+        function setDir(x, y) { player.nextX = x; player.nextY = y; }
+
+        window.onkeydown = e => {
+            if (e.key === 'ArrowUp') setDir(0, -1);
+            if (e.key === 'ArrowDown') setDir(0, 1);
+            if (e.key === 'ArrowLeft') setDir(-1, 0);
+            if (e.key === 'ArrowRight') setDir(1, 0);
+        };
+
+        document.getElementById('up').onclick = () => setDir(0, -1);
+        document.getElementById('down').onclick = () => setDir(0, 1);
+        document.getElementById('left').onclick = () => setDir(-1, 0);
+        document.getElementById('right').onclick = () => setDir(1, 0);
+
+        setInterval(update, 220);
+    </script>
+</body>
+</html>
