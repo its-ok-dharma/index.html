@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Limpieza Mística 🌟</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; touch-action: manipulation; }
         body {
             background: #0d0e15;
             color: #e0e6ed;
@@ -42,20 +42,20 @@
         .btn-ctrl {
             background: #2d3748;
             color: #fff;
-            border: none;
+            border: 1px solid #4a5568;
             padding: 14px;
             font-size: 1.4rem;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
-            touch-action: manipulation;
+            touch-action: none;
         }
-        .btn-ctrl:active { background: #4a5568; }
+        .btn-ctrl:active { background: #4a5568; transform: scale(0.95); }
         #up { grid-column: 2; }
         #left { grid-column: 1; grid-row: 2; }
         #down { grid-column: 2; grid-row: 2; }
         #right { grid-column: 3; grid-row: 2; }
 
-        /* Pantallas Flotantes (Modal) */
+        /* Pantalla Flotante (Modal) */
         #modal {
             position: absolute;
             top: 0; left: 0; width: 320px; height: 320px;
@@ -139,7 +139,6 @@
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
         ];
 
-        // Lista de Mensajes del Universo / Oráculo
         const oracleMessages = [
             "🔮 La Estrella: Confía en la intuición que habita en ti. Tu camino está iluminado y en perfecta armonía.",
             "🔮 El Sol: Todo lo que necesitas ya florece dentro de ti. Recibe este momento con gratitud y alegría.",
@@ -163,18 +162,15 @@
             ghosts = [{ x: 7, y: 6, color: '#fc8181' }, { x: 8, y: 6, color: '#b794f4' }];
         }
 
-        // Función para dibujar una estrella en lugar de un círculo
         function drawStar(cx, cy, spikes, outerRadius, innerRadius, color) {
             let rot = Math.PI / 2 * 3;
-            let x = cx;
-            let y = cy;
             let step = Math.PI / spikes;
 
             ctx.beginPath();
             ctx.moveTo(cx, cy - outerRadius);
             for (let i = 0; i < spikes; i++) {
-                x = cx + Math.cos(rot) * outerRadius;
-                y = cy + Math.sin(rot) * outerRadius;
+                let x = cx + Math.cos(rot) * outerRadius;
+                let y = cy + Math.sin(rot) * outerRadius;
                 ctx.lineTo(x, y);
                 rot += step;
 
@@ -208,11 +204,9 @@
                 }
             }
 
-            // Dibuja la Estrellita del Jugador
             let starColor = powerMode ? '#68d391' : '#f6ad55';
             drawStar(player.x * 20 + 10, player.y * 20 + 10, 5, 8, 4, starColor);
 
-            // Fantasmas
             ghosts.forEach(g => {
                 ctx.fillStyle = powerMode ? '#4299e1' : g.color;
                 ctx.beginPath(); ctx.arc(g.x * 20 + 10, g.y * 20 + 10, 8, 0, 7); ctx.fill();
@@ -226,13 +220,18 @@
         }
 
         function update() {
+            // Giro automático inteligente en esquinas
             if (player.nextX !== 0 || player.nextY !== 0) {
-                if (currentMap[player.y + player.nextY][player.x + player.nextX] !== 1) {
-                    player.dirX = player.nextX; player.dirY = player.nextY;
+                if (currentMap[player.y + player.nextY] && currentMap[player.y + player.nextY][player.x + player.nextX] !== 1) {
+                    player.dirX = player.nextX;
+                    player.dirY = player.nextY;
                 }
             }
-            if (currentMap[player.y + player.dirY][player.x + player.dirX] !== 1) {
-                player.x += player.dirX; player.y += player.dirY;
+
+            // Movimiento suave
+            if (currentMap[player.y + player.dirY] && currentMap[player.y + player.dirY][player.x + player.dirX] !== 1) {
+                player.x += player.dirX;
+                player.y += player.dirY;
             }
 
             let tile = currentMap[player.y][player.x];
@@ -278,7 +277,7 @@
             modal.style.display = 'flex';
             if (win) {
                 let randomMsg = oracleMessages[Math.floor(Math.random() * oracleMessages.length)];
-                modalTitle.innerText = " Mensaje del Universo ✨";
+                modalTitle.innerText = "Mensaje del Universo ✨";
                 modalMsg.innerText = randomMsg;
                 startBtn.innerText = "Volver a Jugar";
             } else {
@@ -297,16 +296,21 @@
             if (e.key === 'ArrowRight') setDir(1, 0);
         };
 
-        document.getElementById('up').onclick = () => setDir(0, -1);
-        document.getElementById('down').onclick = () => setDir(0, 1);
-        document.getElementById('left').onclick = () => setDir(-1, 0);
-        document.getElementById('right').onclick = () => setDir(1, 0);
+        // Eventos táctiles directos para respuesta instantánea
+        ['up', 'down', 'left', 'right'].forEach(id => {
+            let el = document.getElementById(id);
+            let mapDir = { up: [0,-1], down: [0,1], left: [-1,0], right: [1,0] };
+            el.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                setDir(mapDir[id][0], mapDir[id][1]);
+            });
+        });
 
         startBtn.onclick = function() {
             modal.style.display = 'none';
             resetGame();
             clearInterval(gameInterval);
-            gameInterval = setInterval(update, 220);
+            gameInterval = setInterval(update, 170); // Velocidad optimizada
         };
 
         draw();
